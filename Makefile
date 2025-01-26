@@ -1,2 +1,2 @@
 main:
-	gcc -g -Wall -Wextra main.c -o mell
+	gcc -ggdb -Wall -Wextra main.c -o mell
