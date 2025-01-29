@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MELL_RL_BUFFSIZE 1024;
-/*#define DEBUG ;*/
+#define DEBUG ;
 
 void mell_loop(void);
 
@@ -77,8 +78,42 @@ char *mell_getline(void) {
   return lineptr;
 }
 
-char **mell_split_line(char *line){
+#define MELL_TOK_BUFSIZE 64
+#define MELL_TOK_DELIM " \t\r\n\a"
 
+char **mell_split_line(char *line) {
+
+  int bufsize = MELL_TOK_BUFSIZE;
+  int position = 0;
+
+  char **tokens = malloc(bufsize * sizeof(char *));
+  char *token;
+
+  if (!tokens) {
+    fprintf(stderr, "mell: allocation error\n");
+    exit(EXIT_FAILURE);
+  }
+
+  token = strtok(line, MELL_TOK_DELIM);
+  while (token != NULL) {
+    tokens[position] = token;
+    position++;
+
+    if (position >= bufsize) {
+      bufsize += MELL_TOK_BUFSIZE;
+      tokens = realloc(tokens, bufsize * sizeof(char *));
+
+      if (!tokens) {
+        fprintf(stderr, "mell: allocation error\n");
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    token = strtok(NULL, MELL_TOK_DELIM);
+  }
+
+  tokens[position] = NULL;
+  return tokens;
 }
 
 int mell_execute(char **args);
@@ -91,16 +126,22 @@ void mell_loop(void) {
 
   do {
     printf("mell> ");
-    line = mell_read_line();
+    //line = mell_read_line();
     line = mell_getline();
 
   #ifdef DEBUG
       printf("[DEBUG] User Input: %s \n", line);
   #endif /* ifdef DEBUG */
 
-    /*args = mell_split_line(line);
-    status = mell_execute(args);*/
+    args = mell_split_line(line);
 
+#ifdef DEBUG
+    printf("[DEBUG] Tokens:\n");
+    for (int i = 0; args[i] != NULL; i++)
+      printf("[token %d)] %s \n", i + 1, args[i]);
+#endif /* ifdef DEBUG */
+
+    //status = mell_execute(args)
     args = 0;
     status = 0;
     free(line);
