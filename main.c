@@ -5,9 +5,12 @@
 #define MELL_RL_BUFFSIZE 1024;
 #define DEBUG ;
 
-void mell_loop(void);
+void
+mell_loop(void);
 
-int main(int argc, char **argv) {
+int
+main(int argc, char** argv)
+{
 
   // load config files if any
 
@@ -18,11 +21,13 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-char *mell_read_line(void) {
+char*
+mell_read_line(void)
+{
 
   int bufsize = MELL_RL_BUFFSIZE;
   int position = 0;
-  char *buffer = calloc(sizeof(char) * bufsize, 1);
+  char* buffer = calloc(sizeof(char) * bufsize, 1);
   int character;
 
   if (!buffer) {
@@ -36,9 +41,9 @@ char *mell_read_line(void) {
     // Handle EOF
     if (character == EOF || character == '\n') {
       buffer[position] = '\0';
-      #ifdef DEBUG
-          printf("[DEBUG] mell_read_line returned: %s \r\n", buffer);
-      #endif /* ifdef DEBUG */
+#ifdef DEBUG
+      printf("[DEBUG] mell_read_line returned: %s \r\n", buffer);
+#endif /* ifdef DEBUG */
       return buffer;
     } else {
       buffer[position] = character;
@@ -46,7 +51,7 @@ char *mell_read_line(void) {
 
     position++;
 
-   // re-allocate past buffer size
+    // re-allocate past buffer size
     if (position >= bufsize) {
       bufsize += MELL_RL_BUFFSIZE;
       buffer = realloc(buffer, bufsize);
@@ -58,22 +63,24 @@ char *mell_read_line(void) {
   }
 }
 
-char *mell_getline(void) {
-  char *lineptr = NULL;
+char*
+mell_getline(void)
+{
+  char* lineptr = NULL;
   size_t buffline = 0;
 
-   if (getline(&lineptr, &buffline, stdin) == -1) {
-     if (feof(stdin)) {
-       printf("success"); //exit(EXIT_SUCCESS);
-     } else {
+  if (getline(&lineptr, &buffline, stdin) == -1) {
+    if (feof(stdin)) {
+      printf("success"); // exit(EXIT_SUCCESS);
+    } else {
       perror("readline");
       exit(EXIT_FAILURE);
     }
   }
 
-  #ifdef DEBUG
-    printf("[DEBUG] Getline returned: %s \r\n", lineptr);
-  #endif /* ifdef DEBUG */
+#ifdef DEBUG
+  printf("[DEBUG] Getline returned: %s \r\n", lineptr);
+#endif /* ifdef DEBUG */
 
   return lineptr;
 }
@@ -81,13 +88,15 @@ char *mell_getline(void) {
 #define MELL_TOK_BUFSIZE 64
 #define MELL_TOK_DELIM " \t\r\n\a"
 
-char **mell_split_line(char *line) {
+char**
+mell_split_line(char* line)
+{
 
   int bufsize = MELL_TOK_BUFSIZE;
   int position = 0;
 
-  char **tokens = malloc(bufsize * sizeof(char *));
-  char *token;
+  char** tokens = malloc(bufsize * sizeof(char*));
+  char* token;
 
   if (!tokens) {
     fprintf(stderr, "mell: allocation error\n");
@@ -101,7 +110,7 @@ char **mell_split_line(char *line) {
 
     if (position >= bufsize) {
       bufsize += MELL_TOK_BUFSIZE;
-      tokens = realloc(tokens, bufsize * sizeof(char *));
+      tokens = realloc(tokens, bufsize * sizeof(char*));
 
       if (!tokens) {
         fprintf(stderr, "mell: allocation error\n");
@@ -116,22 +125,27 @@ char **mell_split_line(char *line) {
   return tokens;
 }
 
-int mell_execute(char **args);
+int
+mell_execute(char** args)
+{
+}
 
-void mell_loop(void) {
+void
+mell_loop(void)
+{
 
-  char *line;
-  char **args;
+  char* line;
+  char** args;
   int status;
 
   do {
     printf("mell> ");
-    //line = mell_read_line();
+    // line = mell_read_line();
     line = mell_getline();
 
-  #ifdef DEBUG
-      printf("[DEBUG] User Input: %s \n", line);
-  #endif /* ifdef DEBUG */
+#ifdef DEBUG
+    printf("[DEBUG] User Input: %s \n", line);
+#endif /* ifdef DEBUG */
 
     args = mell_split_line(line);
 
@@ -141,7 +155,7 @@ void mell_loop(void) {
       printf("[token %d)] %s \n", i + 1, args[i]);
 #endif /* ifdef DEBUG */
 
-    //status = mell_execute(args)
+    // status = mell_execute(args)
     args = 0;
     status = 0;
     free(line);
