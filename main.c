@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #define MELL_RL_BUFFSIZE 1024;
-#define DEBUG ;
+// #define DEBUG ;
 
 void
 mell_loop(void);
@@ -126,8 +129,88 @@ mell_split_line(char* line)
 }
 
 int
+launch(char** args)
+{
+  pid_t pid, wpid;
+  int status;
+
+  pid = fork();
+
+  if (pid == 0) {
+    if (execvp(args[0], args) == -1) {
+      perror("mell");
+    }
+    exit(EXIT_FAILURE);
+  } else if (pid < 0) {
+    perror("mell");
+  } else {
+    do {
+      wpid = waitpid(pid, &status, WUNTRACED);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  }
+  return 1;
+}
+
+/*
+ * Builtin shell commands
+ */
+
+int
+mell_cd(char** args);
+int
+mell_help(char** args);
+int
+mell_exit(char** args);
+
+char* builtin_str[] = { "cd", "help", "exit" };
+int (*builtin_func[])(char**) = { &mell_cd, &mell_help, &mell_exit };
+
+int
+mell_cd(char** args)
+{
+
+  if (args[1] == NULL || strcmp(args[1], "~") == 0) {
+    const char* home = getenv("HOME");
+    chdir(home);
+  } else if (chdir(args[1]) != 0) {
+    perror("mell");
+  }
+  return 1;
+}
+
+int
+mell_help(char** args)
+{
+  printf("Custom Shell for learning\n");
+  printf("The following are built in:\n");
+
+  for (int i = 0; i < sizeof(builtin_str) / sizeof(char*); i++) {
+    printf(" %s\n", builtin_str[i]);
+  }
+  return 1;
+}
+
+int
+mell_exit(char** args)
+{
+  return 0;
+}
+
+int
 mell_execute(char** args)
 {
+
+  if (args[0] == NULL) {
+    return 1;
+  }
+
+  for (int i = 0; i < sizeof(builtin_str) / sizeof(char*); i++) {
+    if (strcmp(args[0], builtin_str[i]) == 0) {
+      return (*builtin_func[i])(args);
+    }
+  }
+
+  return launch(args);
 }
 
 void
@@ -155,9 +238,8 @@ mell_loop(void)
       printf("[token %d)] %s \n", i + 1, args[i]);
 #endif /* ifdef DEBUG */
 
-    // status = mell_execute(args)
-    args = 0;
-    status = 0;
+    status = mell_execute(args);
+
     free(line);
     free(args);
   } while (status);
